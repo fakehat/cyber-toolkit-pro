@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cyber Security Toolkit</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0c15 0%, #0f111a 100%);
+        }
+        .auth-card {
+            background: #121520;
+            border: 1px solid #1f2230;
+            border-radius: 24px;
+            padding: 40px;
+            width: 420px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-logo-icon {
+            font-size: 48px;
+        }
+        .auth-logo h1 {
+            font-size: 28px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0a0c15;
+            border: 1px solid #1f2230;
+            border-radius: 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 12px;
+            color: #0a0c15;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,212,255,0.3);
+        }
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+        .auth-link a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+        .error-msg {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            border-radius: 10px;
+            padding: 10px;
+            color: #ff8888;
+            font-size: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .brute-warning {
+            background: rgba(245,158,11,0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 10px;
+            color: #fbbf24;
+            font-size: 11px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">🛡️</div>
+                <h1>Welcome Back</h1>
+                <p style="color: #6b7280; font-size: 12px;">Login to your account</p>
+            </div>
+
+            <div id="errorMsg" class="error-msg" style="display: none;"></div>
+
+            <input type="text" id="username" class="auth-input" placeholder="Username" autocomplete="off">
+            <input type="password" id="password" class="auth-input" placeholder="Password">
+            
+            <button class="auth-btn" onclick="login()">🔐 Login</button>
+            
+            <div class="auth-link">
+                Don't have an account? <a href="/signup">Sign up</a>
+            </div>
+            
+            <div id="bruteWarning" class="brute-warning" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const bruteWarning = document.getElementById('bruteWarning');
+            
+            errorMsg.style.display = 'none';
+            bruteWarning.style.display = 'none';
+            
+            if (!username || !password) {
+                errorMsg.textContent = 'Please enter username and password';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect || '/dashboard';
+                } else {
+                    errorMsg.textContent = data.error;
+                    errorMsg.style.display = 'block';
+                    
+                    if (data.attempts_left !== undefined && data.attempts_left <= 3) {
+                        bruteWarning.textContent = `⚠️ ${data.attempts_left} attempts remaining before account lock`;
+                        bruteWarning.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.style.display = 'block';
+            }
+        }
+        
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+</html>

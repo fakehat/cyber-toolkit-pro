@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Cyber Security Toolkit Pro | Forensic Intelligence Suite</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sticky Sidebar - Left -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon">🛡️</div>
+                <div class="logo-text">
+                    <h1>Cyber<span>Toolkit</span></h1>
+                    <p>Security Intelligence Suite</p>
+                </div>
+            </div>
+
+            <!-- User Info & Logout Button - Right Side Fixed -->
+            <div id="userInfo" class="user-info" style="padding: 16px 20px; border-bottom: 1px solid #1f2230;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #00d4ff, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            👤
+                        </div>
+                        <div>
+                            <div id="userName" style="font-size: 14px; font-weight: 600;">{{ username }}</div>
+                            <div style="font-size: 11px; color: #6b7280;">Logged in</div>
+                        </div>
+                    </div>
+                    <button id="logoutBtn" style="background: #dc2626; border: none; padding: 6px 14px; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">
+                        🚪 Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tool Navigation -->
+            <div class="nav-section">
+                <div class="card-label">
+                    <span class="label-icon">🛠️</span>
+                    <span class="label-text">SECURITY TOOLS</span>
+                </div>
+                <div class="tool-nav">
+                    <button id="navHome" class="tool-nav-btn active">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </button>
+                    <button id="navTyposquat" class="tool-nav-btn">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-text">Typosquat Detector</span>
+                    </button>
+                    <button id="navPassword" class="tool-nav-btn">
+                        <span class="nav-icon">🔐</span>
+                        <span class="nav-text">Password Analyzer</span>
+                    </button>
+                    <button id="navExif" class="tool-nav-btn">
+                        <span class="nav-icon">🖼️</span>
+                        <span class="nav-text">EXIF GPS Forensics</span>
+                    </button>
+                    <button id="navHistory" class="tool-nav-btn">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">History</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Typosquat Sidebar -->
+            <div id="typosquatSidebar" class="tool-section" style="display: none;">
+                <div class="input-card">
+                    <div class="card-label">
+                        <span class="label-icon">🎯</span>
+                        <span class="label-text">TARGET DOMAINS</span>
+                    </div>
+                    <textarea id="urlInput" placeholder="Enter domains to analyze (one per line)
+
+Example:
+google.com
+gooogle.com
+paypa1.com
+facebok.com"></textarea>
+                    <div class="button-stack">
+                        <button id="analyzeBtn" class="btn-primary">
+                            <span class="btn-big-icon">🔍</span>
+                            START ANALYSIS
+                        </button>
+                        <div class="button-row">
+                            <button id="sampleBtn" class="btn-secondary">
+                                📋 Load Examples
+                            </button>
+                            <button id="clearBtn" class="btn-secondary">
+                                🗑️ Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-label">
+                        <span class="label-icon">📊</span>
+                        <span class="label-text">ANALYSIS SUMMARY</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-block">
+                            <div class="stat-big-number" id="totalCount">0</div>
+                            <div class="stat-small-label">Total Analyzed</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-big-number high-risk" id="highRiskCount">0</div>
+                            <div class="stat-small-label">High Risk</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-big-number safe" id="safeCount">0</div>
+                            <div class="stat-small-label">Safe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Sidebar -->
+            <div id="passwordSidebar" class="tool-section" style="display: none;">
+                <div class="input-card">
+                    <div class="card-label">
+                        <span class="label-icon">🔐</span>
+                        <span class="label-text">PASSWORD ANALYSIS</span>
+                    </div>
+                    <input type="password" id="passwordInput" class="password-input" placeholder="Enter password to analyze">
+                    <div class="button-stack">
+                        <button id="analyzePasswordBtn" class="btn-primary">
+                            <span class="btn-big-icon">🔍</span>
+                            ANALYZE PASSWORD
+                        </button>
+                        <div class="button-row">
+                            <button id="samplePasswordBtn" class="btn-secondary">
+                                📋 Try Examples
+                            </button>
+                            <button id="clearPasswordBtn" class="btn-secondary">
+                                🗑️ Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-label">
+                        <span class="label-icon">📊</span>
+                        <span class="label-text">PASSWORD STATS</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-block">
+                            <div class="stat-big-number" id="pwdStrength">—</div>
+                            <div class="stat-small-label">Strength</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-big-number" id="pwdEntropy">—</div>
+                            <div class="stat-small-label">Entropy (bits)</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-big-number" id="pwdLength">—</div>
+                            <div class="stat-small-label">Length</div>
+                        </div>
+                        <div class="stat-block">
+                            <div class="stat-big-number" id="pwdBreach">—</div>
+                            <div class="stat-small-label">Breach Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXIF Sidebar -->
+            <div id="exifSidebar" class="tool-section" style="display: none;">
+                <div class="input-card">
+                    <div class="card-label">
+                        <span class="label-icon">🖼️</span>
+                        <span class="label-text">IMAGE FORENSICS</span>
+                    </div>
+
+                    <!-- Single Image Upload -->
+                    <div class="upload-area" id="exifUploadArea" onclick="document.getElementById('exifFileInput').click()">
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">Click or drag image here</div>
+                        <div class="upload-sub">Supports JPG, PNG, TIFF</div>
+                        <input type="file" id="exifFileInput" accept="image/*" style="display: none;">
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="exifImagePreview" class="exif-preview" style="display: none;">
+                        <img id="exifPreviewImg" src="" alt="Preview">
+                        <button id="exifRemovePreview" class="preview-remove">✖ Remove</button>
+                    </div>
+
+                    <!-- Folder Upload -->
+                    <div class="upload-area folder-upload" id="folderUploadArea" onclick="document.getElementById('folderFileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Click or drag folder here</div>
+                        <div class="upload-sub">Analyze ALL images in folder (any number)</div>
+                        <input type="file" id="folderFileInput" webkitdirectory directory multiple style="display: none;">
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div id="analysisProgress" class="analysis-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="analysisProgressFill"></div>
+                        </div>
+                        <div class="progress-text" id="analysisProgressText"></div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="button-stack">
+                        <button id="analyzeExifBtn" class="btn-primary">
+                            <span class="btn-big-icon">🔍</span>
+                            ANALYZE IMAGE
+                        </button>
+                        <button id="analyzeFolderBtn" class="btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                            <span class="btn-big-icon">📁</span>
+                            ANALYZE FOLDER
+                        </button>
+                        <button id="clearExifBtn" class="btn-secondary">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+
+                    <!-- Export Buttons -->
+                    <div id="exifExportBtns" class="export-buttons-group" style="display: none;">
+                        <div class="card-label">
+                            <span class="label-icon">📄</span>
+                            <span class="label-text">EXPORT OPTIONS</span>
+                        </div>
+                        <div class="export-grid">
+                            <button id="exportExifReportBtn" class="export-btn-small">📄 HTML Report</button>
+                            <button id="copyExifGpsBtn" class="export-btn-small">📍 Copy GPS</button>
+                            <button id="openExifMapsBtn" class="export-btn-small">🗺️ Open Maps</button>
+                            <button id="exportExifCsvBtn" class="export-btn-small">📊 Export CSV</button>
+                            <button id="exportBulkReportBtn" class="export-btn-small">📑 Full Report</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <div id="historySidebar" class="tool-section" style="display: none;">
+                <div class="input-card">
+                    <div class="card-label">
+                        <span class="label-icon">📋</span>
+                        <span class="label-text">TOOL HISTORY</span>
+                    </div>
+                    <div class="history-filters">
+                        <select id="historyFilter" class="history-select">
+                            <option value="all">All Tools</option>
+                            <option value="typosquat">Typosquat Detector</option>
+                            <option value="password">Password Analyzer</option>
+                            <option value="exif">EXIF GPS Forensics</option>
+                        </select>
+                        <button id="refreshHistoryBtn" class="btn-secondary" style="margin-top: 10px;">🔄 Refresh</button>
+                    </div>
+                    <div id="historyList" class="history-list">
+                        <div class="empty-state" style="padding: 30px; text-align: center;">No history yet. Use tools to see history.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Console -->
+            <div class="logs-card">
+                <div class="card-label">
+                    <span class="label-icon">📡</span>
+                    <span class="label-text">LIVE CONSOLE</span>
+                </div>
+                <div class="logs-area" id="logsContainer">
+                    <div class="log-line info">● System initialized</div>
+                    <div class="log-line info">● Cyber Security Toolkit Pro ready</div>
+                    <div class="log-line info">● Welcome to the Dashboard</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content - Right -->
+        <main class="main-content">
+            <div class="content-header">
+                <div class="header-title">
+                    <span class="title-icon" id="activeToolIcon">🏠</span>
+                    <span class="title-text" id="activeToolTitle">CYBER SECURITY DASHBOARD</span>
+                </div>
+                <div class="header-badge">
+                    <span class="badge-dot"></span>
+                    System Online
+                </div>
+                <button id="exportReportBtn" class="export-btn" style="display: none;">
+                    <span>📄</span> EXPORT REPORT
+                </button>
+            </div>
+
+            <!-- Home Page -->
+            <div id="homeResultsArea" class="results-container">
+                <div class="home-welcome">
+                    <div class="home-icon">🛡️</div>
+                    <h1 class="home-title">Cyber Security <span>Toolkit Pro</span></h1>
+                    <p class="home-description">
+                        Enterprise-grade forensic intelligence suite for cybersecurity professionals.
+                        Generate court-admissible evidence with automated analysis.
+                    </p>
+                    <div class="home-stats">
+                        <div class="home-stat">
+                            <div class="home-stat-number">3</div>
+                            <div class="home-stat-label">Security Tools</div>
+                        </div>
+                        <div class="home-stat">
+                            <div class="home-stat-number">100%</div>
+                            <div class="home-stat-label">Automated</div>
+                        </div>
+                        <div class="home-stat">
+                            <div class="home-stat-number">Court</div>
+                            <div class="home-stat-label">Admissible</div>
+                        </div>
+                        <div class="home-stat">
+                            <div class="home-stat-number">Real-time</div>
+                            <div class="home-stat-label">Analysis</div>
+                        </div>
+                    </div>
+                    <div class="home-buttons">
+                        <div class="home-card" onclick="switchTool('typosquat')">
+                            <div class="home-card-icon">🎯</div>
+                            <h3>Typosquat Detector</h3>
+                            <p>Detect fake domains, typosquatting attacks, and phishing attempts with AI-powered similarity analysis and automated screenshot evidence.</p>
+                            <div class="home-card-tag">Real-time • SSL Check • Screenshot Evidence</div>
+                        </div>
+                        <div class="home-card" onclick="switchTool('password')">
+                            <div class="home-card-icon">🔐</div>
+                            <h3>Password Analyzer</h3>
+                            <p>Comprehensive password security analysis including entropy calculation, breach database check, and crack time estimation.</p>
+                            <div class="home-card-tag">Entropy • Breach Check • Crack Time</div>
+                        </div>
+                        <div class="home-card" onclick="switchTool('exif')">
+                            <div class="home-card-icon">🖼️</div>
+                            <h3>EXIF GPS Forensics</h3>
+                            <p>Extract GPS coordinates, camera metadata, steganography, and AI generation detection from images.</p>
+                            <div class="home-card-tag">GPS • Camera Info • AI Detection • Steganography</div>
+                        </div>
+                    </div>
+                    <div class="home-footer">
+                        <span>⚡ Court Admissible Reports</span>
+                        <span>🔒 Enterprise Grade Security</span>
+                        <span>📸 Automated Screenshot Evidence</span>
+                        <span>🛡️ Zero Trust Architecture</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typosquat Results -->
+            <div id="typosquatResultsArea" class="results-container" style="display: none;">
+                <div class="empty-large">
+                    <div class="empty-large-icon">🔍</div>
+                    <div class="empty-large-text">No Analysis Performed</div>
+                    <div class="empty-large-sub">Enter domains in the left panel and click START ANALYSIS</div>
+                </div>
+            </div>
+
+            <!-- Password Results -->
+            <div id="passwordResultsArea" class="results-container" style="display: none;">
+                <div class="empty-large">
+                    <div class="empty-large-icon">🔐</div>
+                    <div class="empty-large-text">No Password Analyzed</div>
+                    <div class="empty-large-sub">Enter a password and click ANALYZE PASSWORD</div>
+                </div>
+            </div>
+
+            <!-- EXIF Results -->
+            <div id="exifResultsArea" class="results-container" style="display: none;">
+                <div class="empty-large">
+                    <div class="empty-large-icon">🖼️</div>
+                    <div class="empty-large-text">No Image Analyzed</div>
+                    <div class="empty-large-sub">Upload an image from the left panel and click ANALYZE IMAGE</div>
+                </div>
+            </div>
+
+            <!-- History Results -->
+            <div id="historyResultsArea" class="results-container" style="display: none;">
+                <div class="empty-large">
+                    <div class="empty-large-icon">📋</div>
+                    <div class="empty-large-text">No History</div>
+                    <div class="empty-large-sub">Your tool usage history will appear here</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
