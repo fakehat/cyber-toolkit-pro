@@ -22,7 +22,7 @@ from geopy.extra.rate_limiter import RateLimiter
 # Map generation
 import folium
 
-# Steganography detection
+# Steganography detection (original LSB)
 try:
     from stegano import lsb
     STEGANO_AVAILABLE = True
@@ -36,18 +36,23 @@ try:
 except:
     CV2_AVAILABLE = False
 
+# New forensic enhancer (AI + steganography) – optional
+try:
+    from .forensic_enhancer import ForensicEnhancer
+    ENHANCER_AVAILABLE = True
+except ImportError:
+    ENHANCER_AVAILABLE = False
+
 
 class ExifForensicAnalyzer:
     """Complete Forensic EXIF Analyzer with Rate Limiting & URL Support"""
     
-    def __init__(self):
+    def __init__(self, hive_api_key: str = None):
         # Setup rate-limited geocoder
         self.geolocator = Nominatim(user_agent="exif_forensic_tool", timeout=10)
-        # For newer geopy versions
         try:
             self.reverse_geocode = RateLimiter(self.geolocator.reverse, delay=1.5)
         except TypeError:
-            # For older geopy versions
             self.reverse_geocode = RateLimiter(self.geolocator.reverse, min_delay_seconds=1.5)
         
         # Cache for addresses
@@ -58,6 +63,14 @@ class ExifForensicAnalyzer:
         
         # Track request times
         self.last_request_time = 0
+
+        # Initialize forensic enhancer (AI + steganography) if available
+        self.forensic_enhancer = None
+        if ENHANCER_AVAILABLE:
+            try:
+                self.forensic_enhancer = ForensicEnhancer(hive_api_key)
+            except Exception as e:
+                print(f"Forensic enhancer init error: {e}")
     
     def download_from_url(self, url):
         """Download image from URL"""
@@ -222,8 +235,16 @@ class ExifForensicAnalyzer:
             
             if not exif:
                 report["forensic_indicators"].append("⚠️ No EXIF data found (might be stripped or social media compressed)")
-                report["steganography_detection"] = self._detect_steganography(image_path)
-                report["ai_generation_detection"] = self._detect_ai_generated({}, img, image_path)
+                # Even without EXIF, we can try forensic enhancer
+                if self.forensic_enhancer:
+                    enhancer_results = self.forensic_enhancer.analyze(image_path, img, {})
+                    report["ai_generation_detection"] = enhancer_results.get("ai_generation_detection", {})
+                    report["steganography_detection"] = enhancer_results.get("steganography_detection", {})
+                    report["forensic_indicators"].extend(enhancer_results.get("forensic_indicators", []))
+                else:
+                    # Fallback to original methods
+                    report["steganography_detection"] = self._detect_steganography(image_path)
+                    report["ai_generation_detection"] = self._detect_ai_generated({}, img, image_path)
                 report["temporal_info"] = self._get_file_timestamp(image_path)
                 return report
             
@@ -264,23 +285,34 @@ class ExifForensicAnalyzer:
             else:
                 report["gps_info"] = {"lat": None, "lon": None, "alt": None}
             
-            # Temporal Analysis (IMPROVED - ensure timestamp shows)
+            # Temporal Analysis
             report["temporal_info"] = self._analyze_temporal(exif_data, img, image_path)
             
             # Social Media Detection
             report["social_media_origin"] = self._detect_social_media_advanced(exif_data, img)
             
-            # AI Generation Detection
-            report["ai_generation_detection"] = self._detect_ai_generated(exif_data, img, image_path)
+            # ---- NEW: Use forensic enhancer for AI + steganography if available ----
+            if self.forensic_enhancer:
+                enhancer_results = self.forensic_enhancer.analyze(image_path, img, exif_data)
+                report["ai_generation_detection"] = enhancer_results.get("ai_generation_detection", {})
+                report["steganography_detection"] = enhancer_results.get("steganography_detection", {})
+                # Merge forensic indicators
+                existing = set(report.get("forensic_indicators", []))
+                new_indicators = enhancer_results.get("forensic_indicators", [])
+                report["forensic_indicators"] = list(existing.union(new_indicators))
+            else:
+                # Original fallback methods
+                report["ai_generation_detection"] = self._detect_ai_generated(exif_data, img, image_path)
+                report["steganography_detection"] = self._detect_steganography(image_path)
             
-            # Steganography Detection
-            report["steganography_detection"] = self._detect_steganography(image_path)
-            
-            # Manipulation Detection
+            # Manipulation Detection (keep original)
             report["manipulation_detection"] = self._detect_manipulation(img, exif_data, image_path)
             
-            # Generate forensic indicators
-            report["forensic_indicators"] = self._generate_indicators(report)
+            # Generate original forensic indicators (without duplication)
+            orig_indicators = self._generate_indicators(report)
+            # Merge again in case enhancer didn't run
+            if not self.forensic_enhancer:
+                report["forensic_indicators"] = orig_indicators
             
         except Exception as e:
             report["error"] = str(e)
@@ -308,7 +340,7 @@ class ExifForensicAnalyzer:
             }
     
     def _detect_steganography(self, image_path):
-        """Detect hidden data in image"""
+        """Original LSB steganography detection (fallback)"""
         detection = {
             "has_hidden_data": False,
             "hidden_message": None,
@@ -333,7 +365,7 @@ class ExifForensicAnalyzer:
         return detection
     
     def _detect_ai_generated(self, exif_data, img, image_path):
-        """Detect ChatGPT/DALL-E AI images even with NO metadata"""
+        """Original heuristic AI detection (fallback)"""
         detection = {
             "is_ai_generated": False,
             "ai_tool": None,
@@ -616,8 +648,8 @@ def analyze_image_from_base64(image_base64, filename):
         with open(temp_path, "wb") as f:
             f.write(image_data)
         
-        # Analyze
-        analyzer = ExifForensicAnalyzer()
+        # Analyze – you can pass hive_api_key from environment if needed
+        analyzer = ExifForensicAnalyzer()  # Add hive_api_key=os.getenv("HIVE_API_KEY") if you have it
         result = analyzer.analyze_single_image(temp_path)
         
         # Clean up
